@@ -335,7 +335,7 @@ is_valid_tomb() {
 
     # check if its already open
     tombfile=`basename $1`
-    tombname=${tombfile%%\.*}
+    tombname=${tombfile%\.[^\.]*}
     mount -l | grep "${tombfile}.*\[$tombname\]$" > /dev/null
     { test $? = 0 } && {
         _warning "Tomb is currently in use: ::1 tomb name::" $tombname; return 1 }
@@ -1235,7 +1235,7 @@ dig_tomb() {
     tombfile=`basename $1`
     tombdir=`dirname $1`
     # make sure the file has a .tomb extension
-    tombname=${tombfile%%\.*}
+    tombname=${tombfile%\.[^\.]*}
     tombfile=${tombname}.tomb
 
     # require the specification of the size of the tomb (-s) in MB
@@ -1293,7 +1293,7 @@ lock_tomb_with_key() {
 
     tombdir=`dirname "$tombpath"`
     tombfile=`basename "$tombpath"`
-    tombname="${tombfile%%\.*}"
+    tombname=${tombfile%\.[^\.]*}
 
     { test -f ${tombdir}/${tombfile} } || {
         _failure "There is no tomb here. You have to it dig first."
@@ -1490,7 +1490,7 @@ create_tomb() {
     tombfile=`basename $1`
     tombdir=`dirname $1`
     # make sure the file has a .tomb extension
-    tombname=${tombfile%%\.*}
+    tombname=${tombfile%\.[^\.]*}
     tombfile=${tombname}.tomb
 
     ${TOMBEXEC} dig ${=PARAM}
@@ -1530,7 +1530,7 @@ mount_tomb() {
         _warning "::1 tomb file:: is not a valid tomb file, operation aborted." $1
         return 1
     fi
-    tombname=${tombfile%%\.*}
+    tombname=${tombfile%\.[^\.]*}
     _verbose "Tomb found: ::1 tomb dir::/::2 tomb file::" $tombdir $tombfile
 
     # load_key called here
@@ -2084,7 +2084,7 @@ resize_tomb() {
 
     tombdir=`dirname $1`
     tombfile=`basename $1`
-    tombname=${tombfile%%\.*}
+    tombname=${tombfile%\.[^\.]*}
 
     # load key from options or file
     load_key
