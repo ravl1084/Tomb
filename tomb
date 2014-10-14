@@ -1746,14 +1746,14 @@ exec_safe_post_hooks() {
     local mnt=$1 # first argument is where the tomb is mounted
     local ME=${SUDO_USER:-$(whoami)}
     if ! [ -x ${mnt}/post-hooks ]; then return; fi
-    # if 'post-hooks' is found inside the tomb, check it: if it is an
-    # executable, launch it as a user this might need a dialog for
-    # security on what is being run, however we expect you know well
-    # what is inside your tomb.  this feature opens the possibility to
-    # make encrypted executables.
+    # If 'post-hooks' is found inside the tomb, check it: if it is an
+    # executable, launch it as the current user.  This might need a
+    # dialog for security on what is being run, however we expect you
+    # know well what is inside your tomb.  This feature opens the
+    # possibility to make encrypted executables.
     cat ${mnt}/post-hooks | head -n1 | grep '^#!/'
     if [ $? = 0 ]; then
-        _success "Post hooks found, executing as user ::1 user name::." $SUDO_USER
+        _success "Post hooks found, executing as user ::1 user name::." $ME
         exec_as_user ${mnt}/post-hooks "$2" "$1"
     fi
 }
