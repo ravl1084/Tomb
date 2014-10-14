@@ -85,6 +85,32 @@ PATH+=:/sbin:/usr/sbin
 # For gettext
 export TEXTDOMAIN=tomb
 
+# Define sepulture's plot (setup tomb-related arguments)
+# synopsis: _plot "/path/to/the.tomb"
+_plot() {
+    # Make them global
+    typeset -g tombpath tombdir tombfile tombname
+    
+    tombpath="$1"
+    _verbose '_plot tombpath = ::1 tomb path::' $tombpath
+
+    tombdir=`dirname $tombpath`
+    _verbose '_plot tombdir  = ::1 tomb dir::'  $tombdir
+
+    tombfile=`basename $tombpath`
+    _verbose '_plot tombfile = ::1 tomb file::' $tombfile
+
+    # The tomb name is tombfile without an extension.
+    # It can start with dots: ..foo.tomb -> ..foo
+    tombname="${tombfile%\.[^\.]*}"
+    _verbose '_plot tombname = ::1 tomb name::' $tombname
+
+    # Normalize tombfile name
+    tombfile="${tombname}.tomb"
+    _verbose '_plot tombfile = ::1 tomb file:: (normalized)' $tombfile
+
+}
+
 # }}}
 
 # {{{ Safety functions
