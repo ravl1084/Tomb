@@ -296,15 +296,16 @@ EOF`
 # Drop privileges
 exec_as_user() {
     if ! [ $SUDO_USER ]; then
+	_verbose "exec_as_user '::1 user::': ::2 command line::" `whoami` ${@[@]}
         exec $@[@]
         return $?
     fi
-    _verbose "exec_as_user '::1 user::': ::2::" $SUDO_USER ${(f)@}
+    _verbose "exec_as_user '::1 user::': ::2 command line::" $SUDO_USER ${@[@]}
     sudo -u $SUDO_USER "${@[@]}"
     return $?
 }
 
-#Escalate privileges
+# Escalate privileges
 check_priv() {
     # save original user
     username=$USER
@@ -1741,20 +1742,33 @@ exec_safe_bind_hooks() {
     done
 }
 
-# Post mount hooks
+## Post Mount Hooks
+#
+# exec_safe_post_hooks mountpoint command
+#
+# If 'post-hooks' is found inside the tomb, check it: if it is an
+# executable, launch it as the SUDO_USER or the current user.  This
+# might need a dialog for security on what is being run, however we
+# expect you know well what is inside your tomb.  This feature opens
+# the possibility to make encrypted executables.
+#
 exec_safe_post_hooks() {
     local mnt=$1 # first argument is where the tomb is mounted
-    local ME=${SUDO_USER:-$(whoami)}
-    if ! [ -x ${mnt}/post-hooks ]; then return; fi
-    # If 'post-hooks' is found inside the tomb, check it: if it is an
-    # executable, launch it as the current user.  This might need a
-    # dialog for security on what is being run, however we expect you
-    # know well what is inside your tomb.  This feature opens the
-    # possibility to make encrypted executables.
-    cat ${mnt}/post-hooks | head -n1 | grep '^#!/'
+    local cmd=$2 # second argument is either open or close
+    
+    if [ ! -f ${mnt}/post-hooks ]; then
+	_verbose "Skipping post-hooks (no 'post-hooks' executable at ::1 mount point::)" $mnt
+	return;
+    fi
+    if [ ! -x ${mnt}/post-hooks ]; then
+	_verbose "Skipping post-hooks (::1 post-hooks:: is not executable)" $mnt/post-hooks
+	return;
+    fi
+
+    cat ${mnt}/post-hooks | head -n1 | grep '^#!/' &>/dev/null
     if [ $? = 0 ]; then
-        _success "Post hooks found, executing as user ::1 user name::." $ME
-        exec_as_user ${mnt}/post-hooks "$2" "$1"
+        _success "Post hooks found, executing as user ::1 user name::." ${SUDO_USER:-$(whoami)}
+        exec_as_user ${mnt}/post-hooks "$2" "$mnt"
     fi
 }
 
