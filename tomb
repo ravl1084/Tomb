@@ -55,7 +55,7 @@ SWISH=1
 QRENCODE=1
 MOUNTOPTS="rw,noatime,nodev"
 
-# prefix for temporary files
+# prefix for temporary files (see check_shm)
 TMPPREFIX="/dev/shm/$$.$RANDOM."
 
 # makes glob matching case insensitive
@@ -151,27 +151,25 @@ TRAPSTOP() {  endgame STOP  }
 
 check_shm() {
     # TODO: configure which tmp dir to use from a cli flag
-    SHMPREFIX=/dev/shm
+    local shmprefix=/dev/shm
 
-    [[ -k /dev/shm ]] || [[ -k /run/shm ]] && { SHMPREFIX=/run/shm } \
+    [[ -k $shmprefix ]] || [[ -k /run/shm ]] && { shmprefix=/run/shm } \
         || {
         # mount the tmpfs if the SO doesn't already
-        mkdir /run/shm
+	shmprefix=/run/shm
+        mkdir -p $shmprefix
         [[ $? = 0 ]] || {
-            fatal "Fatal error creating a directory for temporary files"
-            return 1 }
-        mount -t tmpfs tmpfs /run/shm \
+	    _failure "Fatal error creating a directory for temporary files"
+	}
+        mount -t tmpfs tmpfs $shmprefix \
             -o nosuid,noexec,nodev,mode=0600,uid="$_uid",gid="$_gid"
         [[ $? = 0 ]] || {
-            fatal "Fatal error mounting tmpfs in /run/shm for temporary files"
-            return 1 }
-
-        SHMPREFIX=/run/shm
+	    _failure "Fatal error mounting tmpfs in ::1 path:: for temporary files" $shmprefix
+	}
     }
 
-    # setup a special env var for zsh to create temp files that will
-    # then be deleted at the exit of each function using them.
-    TMPPREFIX="$SHMPREFIX/$$.$RANDOM."
+    # ZSH will create temporary files there, and remove them upon exiting a function.
+    TMPPREFIX="$shmprefix/$$.$RANDOM."
     return 0
 }
 
