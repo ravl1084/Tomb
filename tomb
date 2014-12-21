@@ -846,6 +846,17 @@ _load_key() {
         TOMBKEYFILE=cleartext
         TOMBKEY=cleartext
         TOMBSECRET=$(cat)
+
+
+    elif [[ ${keyfile#*\.} =~ 'gpg$' ]]; then
+        # if the last file extension is '.gpg' then don't handle password
+        _verbose "load_key delegating password handling to GnuPG"
+        _message "Waiting for GnuPG to handle password authentication... "
+        TOMBKEYFILE=$keyfile
+        TOMBKEY="${mapfile[$TOMBKEYFILE]}"
+        # signal to ask_key_password to let GnuPG handle it
+        TOMBSECRET="GNUPG"
+
     else
         _verbose "load_key argument: ::1 key file::" $keyfile
         [[ -r $keyfile ]] || _failure "Key not found, specify one using -k."
@@ -885,7 +896,6 @@ gpg_decrypt() {
 
     } || { # using status-file in gpg != 1.4.11
 
-        # TODO: use mkfifo
         TOMBSECRET=`print - "$gpgpass" | \
             gpg --batch --passphrase-fd 0 --no-tty --no-options \
             --status-fd 2 --no-mdc-warning --no-permission-warning \
@@ -962,6 +972,11 @@ ask_key_password() {
     [[ "$TOMBKEYFILE" = "cleartext" ]] && {
         _verbose "no password needed, using secret bytes from stdin"
         return 0 }
+
+    # if GnuPG handles it just pass it without asking for pass
+    [[ "$TOMBKEYFILE" = "GNUPG" ]] && {
+        get_lukskey "gnupg"
+        return $? }
 
     _message "A password is required to use key ::1 key::" $TOMBKEYFILE
     passok=0
