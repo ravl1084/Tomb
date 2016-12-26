@@ -1,14 +1,27 @@
 language: c
 sudo: required
-dist: trusty
 
-env:
-  - DEBIAN_FRONTEND=noninteractive
-
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install --no-install-recommends -y zsh sudo gnupg cryptsetup pinentry-curses gawk  libgcrypt20-dev steghide qrencode e2fsprogs
+arch:
+  repos:
+    - papyros=http://dash.papyros.io/repos/$repo/$arch
+  packages:
+    # pacman packages
+    - python
+    - perl
+    # packages from papyros repo
+    - papyros-shell
+    # packages for tomb
+    - zsh
+    - cryptsetup
+    - e2fsprogs
+    - gnupg
+    - sudo
+    - qrencode
+    - steghide
+    - wipe
+  script:
+    - "./build_script.sh"
 
 script:
+  - "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
   - make test
-
