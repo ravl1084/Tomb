@@ -2,14 +2,10 @@ language: c
 sudo: required
 
 arch:
-  repos:
-    - papyros=http://dash.papyros.io/repos/$repo/$arch
   packages:
     # pacman packages
     - python
     - perl
-    # packages from papyros repo
-    - papyros-shell
     # packages for tomb
     - zsh
     - cryptsetup
@@ -20,8 +16,8 @@ arch:
     - steghide
     - wipe
   script:
-    - "./build_script.sh"
+    - make test
 
 script:
   - "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
-  - make test
+
