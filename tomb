@@ -1015,7 +1015,7 @@ gpg_decrypt() {
     [[ $gpgver == "1.4.11" ]] && {
         _verbose "GnuPG is version 1.4.11 - adopting status fix."
         TOMBSECRET=`print - "$gpgpass" | \
-            gpg --batch ${gpgpopt[@]} --no-tty --no-options`
+            gpg ${gpgpopt[@]} --no-tty --no-options`
         ret=$?
         unset gpgpass
         return $ret
@@ -1024,7 +1024,7 @@ gpg_decrypt() {
     _tmp_create
     tmpres=$TOMBTMP
     TOMBSECRET=`print - "$gpgpass" | \
-        gpg --batch ${gpgpopt[@]} --no-tty --no-options \
+        gpg ${gpgpopt[@]} --no-tty --no-options \
             --status-fd 2 --no-mdc-warning --no-permission-warning \
             --no-secmem-warning 2> $tmpres`
     unset gpgpass
@@ -1330,7 +1330,7 @@ gen_key() {
     _tmp_create
     local tmpres=$TOMBTMP
     print $opt - "$gpgpass" \
-        | gpg --openpgp --force-mdc --cipher-algo ${algo} --batch \
+        | gpg --openpgp --force-mdc --cipher-algo ${algo} \
               --no-options --no-tty ${gpgopt[@]} \
               --status-fd 2 -o - --armor 2> $tmpres
     unset gpgpass
